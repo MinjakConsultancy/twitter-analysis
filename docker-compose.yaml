@@ -7,6 +7,8 @@ services:
     container_name: twitter_infra_zookeeper
     ports:
       - "2181:2181"
+    expose: 
+      - "2181"
     environment:
       ZOO_MY_ID: 1
       ZOO_PORT: 2181
@@ -21,6 +23,8 @@ services:
     container_name: twitter_infra_kafka1
     ports:
       - "9092:9092"
+    expose:
+      - "9092"
     environment:
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka1:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
@@ -40,6 +44,8 @@ services:
     hostname: kafka2
     ports:
       - "9093:9093"
+    expose:
+      - "9093"
     environment:
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka2:19093,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
@@ -60,6 +66,8 @@ services:
     hostname: kafka3
     ports:
       - "9094:9094"
+    expose:
+      - "9094"
     environment:
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka3:19094,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
@@ -139,7 +147,7 @@ services:
 
   elastic:
     container_name: twitter_infra_elasticsearch
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
     environment:
       - node.name=elastic
       - cluster.name=es-docker-cluster
@@ -160,7 +168,7 @@ services:
 
   elastic2:
     container_name: twitter_infra_elasticsearch2
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
     environment:
       - node.name=elastic2
       - cluster.name=es-docker-cluster
@@ -181,7 +189,7 @@ services:
 
   kibana:
     container_name: twitter_infra_kibana
-    image: docker.elastic.co/kibana/kibana:7.11.1
+    image: docker.elastic.co/kibana/kibana:7.12.0
     volumes:
       - ./infra/kibana.yml:/usr/share/kibana/config/kibana.yml
     expose:
@@ -203,8 +211,106 @@ services:
       - 7474:7474
       - 7687:7687
     environment:
-      NEO4J_AUTH: neo4j/test
+      NEO4J_AUTH: none
 
+  twitter2kafka:
+    container_name: twitter_proc_twitter2kafka
+    build: ./processing
+    image: minjak/twitter_processing
+    volumes:
+      - ./config/.:/tmp/config
+    environment: 
+      CONFIG_DIR: /tmp/config
+      PYTHON_COMMAND: proces_twitter_to_kafka.py
+    depends_on: 
+        - kafka1
+    
+  kafka2kafka:
+    container_name: twitter_proc_kafka2kafka
+    #build: ./processing
+    image: minjak/twitter_processing
+    volumes:
+      - ./config/.:/tmp/config
+    environment: 
+      CONFIG_DIR: /tmp/config
+      PYTHON_COMMAND: proces_kafka_to_kafka.py
+    depends_on: 
+        - kafka1
+        - kafka2
+        - kafka3
+        - mongodb
+
+  kafka2elastic:
+    #build: ./processing
+    image: minjak/twitter_processing
+    container_name: twitter_proc_kafka2elastic
+    volumes:
+      - ./config/.:/tmp/config
+    environment: 
+      CONFIG_DIR: /tmp/config
+      PYTHON_COMMAND: proces_kafka_to_elasticsearch.py
+    depends_on: 
+        - kafka1
+        - kafka2
+        - kafka3
+        - elastic
+    
+  kafka2mongodb:
+    #build: ./processing
+    image: minjak/twitter_processing
+    container_name: twitter_proc_kafka2mongodb
+    volumes:
+      - ./config/.:/tmp/config
+    environment: 
+      CONFIG_DIR: /tmp/config
+      PYTHON_COMMAND: proces_kafka_to_mongodb.py
+    depends_on: 
+      - kafka1
+      - kafka2
+      - kafka3
+      - mongodb
+      
+  kafka2neo4j:
+    #build: ./processing
+    container_name: twitter_proc_kafka2neo4j
+    image: minjak/twitter_processing
+    volumes:
+      - ./config/.:/tmp/config
+    environment: 
+      CONFIG_DIR: /tmp/config
+      PYTHON_COMMAND: proces_kafka_to_neo4j.py
+    depends_on: 
+        - kafka1
+        - kafka2
+        - kafka3
+        - neo4j
+
+  backend:
+    build: ./backend
+    image: localhost:15001/minjak/twitter_backend  
+    container_name: twitter_backend
+    # ports:
+    #   - 3001:3000
+    expose: # so not visible expect for docker containers
+      - 3001
+    depends_on: 
+      - mongodb
+
+  frontend:
+    build: ./frontend
+    image: localhost:15001/minjak/twitter_frontend  
+    container_name: twitter_frontend
+    ports:
+      - 4200:4200
+      - 8083:8083
+    expose: # so not visible expect for docker containers
+      - 4200
+      - 8083
+    depends_on:
+      - backend
+      - kibana
+      - neo4j
+        
 networks:
   default:
     external:

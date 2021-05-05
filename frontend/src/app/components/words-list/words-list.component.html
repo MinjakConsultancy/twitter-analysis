@@ -1,0 +1,60 @@
+<span>Welcome</span>
+
+<table mat-table class="words-table mat-elevation-z8" [dataSource]="dataSource">
+    <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef>
+            <mat-checkbox (change)="$event ? masterToggle() : null"
+                        [checked]="selection.hasValue() && isAllSelected()"
+                        [indeterminate]="selection.hasValue() && !isAllSelected()">
+            </mat-checkbox>
+            <div> </div>
+        </th>
+        <td mat-cell *matCellDef="let row">
+            <mat-checkbox (click)="$event.stopPropagation()"
+                        (change)="$event ? selection.toggle(row) : null"
+                        [checked]="selection.isSelected(row)">
+            </mat-checkbox>
+        </td>
+    </ng-container>
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef> ID </th>
+      <td mat-cell *matCellDef="let word"> {{word.id}} </td>
+    </ng-container>
+  
+    <ng-container matColumnDef="word">
+      <th mat-header-cell *matHeaderCellDef> Word </th>
+      <td mat-cell *matCellDef="let word"> {{word.word}} </td>
+    </ng-container>
+  
+    <ng-container matColumnDef="count">
+        <th mat-header-cell *matHeaderCellDef> Count </th>
+        <td mat-cell *matCellDef="let word"> {{word.count}} </td>
+    </ng-container>
+
+    <ng-container matColumnDef="pos">
+        <th mat-header-cell *matHeaderCellDef> PartOfSpeech </th>
+        <td mat-cell *matCellDef="let word"> {{word.pos}} </td>
+    </ng-container>
+      
+    <ng-container matColumnDef="sentiment">
+        <th mat-header-cell *matHeaderCellDef> sentiment </th>
+        <td mat-cell *matCellDef="let word"> 
+            
+            <mat-slider [(ngModel)]="word.sentiment" (input)="onInputChange($event)"  min="-10" max="10" step="1" value="{{word.sentiment}}"></mat-slider>
+        </td>
+    </ng-container>
+    <ng-container matColumnDef="denial">
+        <th mat-header-cell *matHeaderCellDef> denial </th>
+        <td mat-cell *matCellDef="let word"> 
+            
+            <mat-checkbox [(ngModel)]="word.denial" value="{{word.denial}}">
+            </mat-checkbox>
+        </td>
+    </ng-container>
+      
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>
+
+<button mat-raised-button color="primary" (click)="updateWords()">Submit</button>
+

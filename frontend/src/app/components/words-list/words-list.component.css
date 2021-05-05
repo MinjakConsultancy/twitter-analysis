@@ -1,0 +1,21 @@
+.words-table {
+    min-height: 500px;
+    min-width: 400px;
+    margin-top: 10px;
+}
+
+.mat-row.hovered {
+    background: #eee;
+}
+
+.mat-row.highlighted {
+  background: #999;
+}
+
+.mat-column-select {
+    overflow: initial;
+}
+
+.mat-cell {
+    padding: 8px 8px 8px 0;
+}
