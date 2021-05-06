@@ -7,7 +7,7 @@ import yaml
 from json import dumps
 from kafka import KafkaProducer
 from time import sleep
-
+from requests.exceptions import ChunkedEncodingError
 
 def get_rule(name, keywords):
     keyword_concat = ' OR '.join(keywords)
@@ -139,7 +139,9 @@ class Streamer(KafkaProducer):
 
                     logging.info("Queued tweet '{}'.".format(json_response['data']['id']))
                     # logging.info(self.metrics())
-                    
+        except ChunkedEncodingError as e:
+            response.close()   
+            self.stream()         
         except (KeyboardInterrupt, SystemExit):
             response.close()
             raise
