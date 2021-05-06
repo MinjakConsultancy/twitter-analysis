@@ -3,7 +3,7 @@ argon2-cffi==20.1.0
 async-generator==1.10
 #attrs @ file:///home/conda/feedstock_root/build_artifacts/attrs_1605083924122/work
 backcall==0.2.0
-bleach==3.2.1
+bleach>=3.3.0
 #blis @ file:///opt/concourse/worker/volumes/live/f9b87811-6932-46c2-6826-5aef90cfc1ba/volume/cython-blis_1594246874825/work
 brotlipy==0.7.0
 #catalogue @ file:///Users/runner/miniforge3/conda-bld/catalogue_1605613876625/work
@@ -25,7 +25,7 @@ ipython==7.19.0
 ipython-genutils==0.2.0
 ipywidgets==7.5.1
 jedi==0.17.2
-Jinja2==2.11.2
+jinja2>=2.11.3
 joblib==0.17.0
 jsonschema==3.2.0
 jupyter==1.0.0
@@ -34,7 +34,7 @@ jupyter-console==6.2.0
 jupyter-core==4.7.0
 jupyterlab-pygments==0.1.2
 kafka-python==1.4.7
-lxml==4.6.1
+lxml>=4.6.3
 MarkupSafe==1.1.1
 mistune==0.8.4
 murmurhash==1.0.4
