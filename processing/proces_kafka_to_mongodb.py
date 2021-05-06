@@ -50,7 +50,7 @@ class Processor(KafkaConsumer):
 
             if 'word' in message:
                 wordQuery = {
-                    'word': {'$eq': message['word'].toLowerCase()},
+                    'word': {'$eq': message['word'].lower()},
                     'pos': {'$eq': message['pos']}
                 }
                 doc = wordCollection.find_one_and_update(wordQuery,
