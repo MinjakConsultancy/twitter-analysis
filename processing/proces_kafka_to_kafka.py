@@ -63,7 +63,7 @@ class Processor(KafkaConsumer):
                     self._producer.send_messages(
                         processed_tweet_topic, json.dumps(token).encode('utf-8'))
                     wordQuery = {
-                        'word': {'$eq': token['word']},
+                        'word': {'$eq': token['word'].lower()},
                         'pos': {'$eq': token['pos']},
                         '$or': [{'sentiment': {'$lt': 0}}, {'sentiment': {'$gt': 0}}]
                     }
@@ -124,11 +124,10 @@ if __name__ == "__main__":
     mongo_password = config['mongo'].get('password')
 
     # try:
-    processor = Processor(topic,   # Kafka topic
+    processor = Processor(topic,   
                           bootstrap_servers=broker,
                           enable_auto_commit=True,
-                          auto_offset_reset='latest',
-                          #value_deserializer = lambda x: dumps(x).decode('utf-8'),
+                          #auto_offset_reset='latest',
                           processed_tweet_topic=processed_tweet_topic,
                           word_topic=word_topic,
                           mongo_url=mongo_url,
