@@ -63,10 +63,11 @@ docker exec -it twitter_infra_mongodb mongoimport --username=root --password=exa
 
 To export a new collection of tweets and words
 ```
-docker exec -it twitter_infra_mongodb mongoexport --username=root --password=example --uri='mongodb://root:example@localhost:27017/?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&ssl=false' -d tweet -c word --file words.json
-docker exec -it twitter_infra_mongodb mongoexport --username=root --password=example --uri='mongodb://root:example@localhost:27017/?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&ssl=false' -d tweet -c tweet --file tweets.json
+docker exec -it twitter_infra_mongodb mongoexport --username=root --password=example --uri='mongodb://root:example@localhost:27017/?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&ssl=false' -d tweet -c word --out words.json
+docker exec -it twitter_infra_mongodb mongoexport --username=root --password=example --uri='mongodb://root:example@localhost:27017/?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&ssl=false' -d tweet -c tweet --out tweets.json
 docker cp  twitter_infra_mongodb:/words.json ./documentation/.
 docker cp  twitter_infra_mongodb:/tweets.json ./documentation/.
 
 ```
+
 
