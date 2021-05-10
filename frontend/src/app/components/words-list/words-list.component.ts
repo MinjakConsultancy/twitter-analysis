@@ -21,34 +21,25 @@ export class WordsListComponent implements OnInit {
     //this.dataSource 
 
   }
-  /** Whether the number of selected elements matches the total number of rows. */
-isAllSelected() {
-  const numSelected = this.selection.selected.length;
-  const numRows = this.dataSource.data.length;
-  return numSelected == numRows;
-}
-
-/** Selects all rows if they are not all selected; otherwise clear selection. */
-masterToggle() {
-  this.isAllSelected() ?
-      this.selection.clear() :
-      this.dataSource.data.forEach(row => this.selection.select(row));
-}
-
-  // formatLabel(value: number) {
-  //   switch(value)
-  //   {case -10:  return 'Negatief'
-  //    case 0:  return 'Neutraal'
-  //    case 10:  return 'Positief'
-  //   }
-  //   return '';
-  // }
   
+  /** Whether the number of selected elements matches the total number of rows. */
+  isAllSelected() {
+    const numSelected = this.selection.selected.length;
+    const numRows = this.dataSource.data.length;
+    return numSelected == numRows;
+  }
+  
+  /** Selects all rows if they are not all selected; otherwise clear selection. */
+  masterToggle() {
+    this.isAllSelected() ?
+        this.selection.clear() :
+        this.dataSource.data.forEach(row => this.selection.select(row));
+  }
+    
   ngOnInit(): void {
     this.retrieveWords();
-    //this.dataSource.loadWords();
   }
-
+  
   retrieveWords(): void {
     this.sentimentService.getAll()
       .subscribe(
@@ -56,14 +47,13 @@ masterToggle() {
           data.sentiment = 0;
           data.denial = false;
           this.dataSource.data = data;
-          //this.words = data;
           console.log(data);
         },
         error => {
           console.log(error);
         });
   }
-
+  
   onInputChange(event: MatSliderChange) {
     console.log("This is emitted as the thumb slides");
     console.log(event.value);
@@ -83,17 +73,5 @@ masterToggle() {
   updateWord(word:Word){
     this.sentimentService.update(word.id, word).subscribe();
 
-    //this.retrieveWords();
   }
-  // refreshList(): void {
-  //   this.retrieveWords();
-  //   this.currentWord = undefined;
-  //   this.currentIndex = -1;
-  // }
-
-  // setActiveTutorial(word: Word, index: number): void {
-  //   this.currentWord = word;
-  //   this.currentIndex = index;
-  // }
-
 }
