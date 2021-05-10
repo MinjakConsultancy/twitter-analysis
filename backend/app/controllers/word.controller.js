@@ -2,8 +2,9 @@ const db = require("../models");
 const Word = db.word;
 var assert = require('assert');
 
-exports.findAll = (req, res) => {
+exports.findAllNotSpecified = (req, res) => {
     const filter = {
+      '$and': [{
         '$or': [
           {
             'sentiment': -1
@@ -11,9 +12,21 @@ exports.findAll = (req, res) => {
             'sentiment': {
               '$exists': false
             }
-          }
+          },
+
         ]
-      };
+      },
+      {
+        '$or': [
+          {
+            'pos': 'ADV'
+          }, {
+            'pos': 'NOUN'
+          },
+        ]
+      },
+      ]
+    };
     const sort = {'count':-1}
     Word.find(filter)  
         .limit(10)

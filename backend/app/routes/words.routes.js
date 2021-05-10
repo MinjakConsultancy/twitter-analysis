@@ -3,7 +3,7 @@ module.exports = app => {
   
     var router = require("express").Router();
   
-    router.get("/", word.findAll);
+    router.get("/notSpecified", word.findAllNotSpecified);
   
     router.get("/:id", word.findOne);
   
