@@ -47,7 +47,7 @@ After a while startup the rest of the compose
 
 ```
 
-docker-compose up -d 
+docker-compose up -d frontend twitter2kafka kafka2kafka kafka2elastic kafka2neo4j
 
 ```
 
@@ -58,7 +58,17 @@ docker cp ./documentation/words.json twitter_infra_mongodb:/.
 docker cp ./documentation/tweets.json twitter_infra_mongodb:/. 
 
 docker exec -it twitter_infra_mongodb mongoimport --username=root --password=example --uri='mongodb://root:example@localhost:27017/?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&ssl=false' -d tweet -c word --file=words.json
-docker exec -it twitter_infra_mongodb mongoimport --username=root --password=example --uri='mongodb://root:example@localhost:27017/?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&ssl=false' -d tweet -c word --file=tweets.json
+docker exec -it twitter_infra_mongodb mongoimport --username=root --password=example --uri='mongodb://root:example@localhost:27017/?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&ssl=false' -d tweet -c tweet --file=tweets.json
+```
+
+To reset the wordcount in order to let new words popup in the frontend.
+
+```
+docker exec -it twitter_infra_mongodb mongo
+# db = connect("mongodb://root:example@localhost:27017")
+# use tweet
+# db.word.updateMany({},{"$set": {"count":"0"}})
+# exit
 ```
 
 To export a new collection of tweets and words
@@ -70,4 +80,10 @@ docker cp  twitter_infra_mongodb:/tweets.json ./documentation/.
 
 ```
 
+It is also possible to "replay" twitter by running the replay_tweets container. This will replay a number of tweets (200) with the current date.
+
+```
+docker-compose up replay_tweets
+
+```
 

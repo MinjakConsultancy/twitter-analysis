@@ -36,9 +36,6 @@ class Processor():
                                     ,{"sentiment":{"$gt":0}}
                                     ]}
                             ):
-            logging.info(doc["word"])
-            logging.info(doc["pos"])
-            logging.info(doc["sentiment"])
             query = {
                 'spacy.tokens': {
                     '$elemMatch': {
@@ -47,10 +44,10 @@ class Processor():
                     }
                 }
             }
-            tweetCollection.update_many( query
+            res = tweetCollection.update_many( query
                                         , { "$inc" : {"sentiment": doc["sentiment"]}}
                                     )
-        
+            logging.info("matched_count/modified_count : " + str(res.matched_count) + " / " + str(res.modified_count))
         return
         
 if __name__ == "__main__":

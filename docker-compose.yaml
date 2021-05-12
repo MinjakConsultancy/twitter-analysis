@@ -7,8 +7,8 @@ services:
     container_name: twitter_infra_zookeeper
     ports:
       - "2181:2181"
-    #expose: 
-    #  - "2181"
+    expose: 
+      - "2181"
     environment:
       ZOO_MY_ID: 1
       ZOO_PORT: 2181
@@ -275,7 +275,37 @@ services:
       - kafka2
       - kafka3
       - mongodb
+
       
+  recalc_sentiment_mongodb:
+    #build: ./processing
+    image: minjak/twitter_processing
+    container_name: twitter_proc_recalc_sentiment_mongo
+    volumes:
+      - ./config/.:/tmp/config
+    environment: 
+      CONFIG_DIR: /tmp/config
+      PYTHON_COMMAND: proces_mongodb_tweet_sentiment.py
+    depends_on: 
+      - mongodb
+      
+  replay_tweets:
+    #build: ./processing
+    image: minjak/twitter_processing
+    container_name: twitter_proc_replay_tweets
+    volumes:
+      - ./config/.:/tmp/config
+    environment: 
+      CONFIG_DIR: /tmp/config
+      PYTHON_COMMAND: replay_tweets.py
+      NUMBER_OF_TWEETS_REPLAYED: 200
+    depends_on: 
+      - mongodb
+      - kafka1
+      - kafka2
+      - kafka3
+      
+
   kafka2neo4j:
     #build: ./processing
     container_name: twitter_proc_kafka2neo4j

@@ -127,7 +127,7 @@ if __name__ == "__main__":
     processor = Processor(topic,   
                           bootstrap_servers=broker,
                           enable_auto_commit=True,
-                          #auto_offset_reset='latest',
+                          auto_offset_reset='latest',
                           processed_tweet_topic=processed_tweet_topic,
                           word_topic=word_topic,
                           mongo_url=mongo_url,
