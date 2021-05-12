@@ -67,7 +67,7 @@ To reset the wordcount in order to let new words popup in the frontend.
 docker exec -it twitter_infra_mongodb mongo
 # db = connect("mongodb://root:example@localhost:27017")
 # use tweet
-# db.word.updateMany({},{"$set": {"count":"0"}})
+# db.word.updateMany({},{"$set": {"count":0}})
 # exit
 ```
 
