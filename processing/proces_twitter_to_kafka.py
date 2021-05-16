@@ -192,7 +192,7 @@ if __name__ == "__main__":
     consumer_key        = config['twitter'].get('key').encode()
     consumer_secret     = config['twitter'].get('secret').encode()
     broker              = config['kafka'].get('broker')
-    topic               = config['kafka'].get('topic')
+    topic               = config['kafka'].get('tweet_topic')
 
     try:
         # Access Twitter's auth API to obtain a bearer token

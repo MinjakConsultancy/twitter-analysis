@@ -20,7 +20,7 @@ class Processor(KafkaConsumer):
         self._nlp_nl = Dutch()
 
         self._broker = kwargs['bootstrap_servers']
-        self._processed_topic = kwargs.pop('processed_tweet_topic', None)
+        self._processed_topic = kwargs.pop('enriched_tweet_topic', None)
         self._word_topic = kwargs.pop('word_topic', None)
         self._kafka = KafkaClient(self._broker)
         self._producer = SimpleProducer(self._kafka)
@@ -60,8 +60,7 @@ class Processor(KafkaConsumer):
                 for token in message['spacy']['tokens']:
                     token['word'] = tweet_text[token['start']: token['end']]
                     token['example_tweet'] = tweet_text
-                    self._producer.send_messages(
-                        processed_tweet_topic, json.dumps(token).encode('utf-8'))
+                    token['date_last_used'] = message["data"]["created_at"]
                     wordQuery = {
                         'word': {'$eq': token['word'].lower()},
                         'pos': {'$eq': token['pos']},
@@ -70,6 +69,8 @@ class Processor(KafkaConsumer):
                     word = self._wordCollection.find_one(wordQuery)
                     if word != None:
                         sentiment += word['sentiment']
+                        token['sentiment'] = word['sentiment']
+                    self._producer.send_messages( self._word_topic, json.dumps(token).encode('utf-8'))
                 message['sentiment'] = sentiment
 
                 matching_rules = message.get('matching_rules')
@@ -82,7 +83,7 @@ class Processor(KafkaConsumer):
                     message['matching_rules'] = matching_rules2
 
                 self._producer.send_messages(
-                    processed_tweet_topic, json.dumps(message).encode('utf-8'))
+                    enriched_tweet_topic, json.dumps(message).encode('utf-8'))
                 logging.info('tweet enriched')
             return
 
@@ -116,24 +117,25 @@ if __name__ == "__main__":
 
     # Read config paramaters
     broker = config['kafka'].get('broker')
-    topic = config['kafka'].get('topic')
-    processed_tweet_topic = config['kafka'].get('processed_tweet_topic')
+    tweet_topic = config['kafka'].get('tweet_topic')
+    enriched_tweet_topic = config['kafka'].get('enriched_tweet_topic')
     word_topic = config['kafka'].get('word_topic')
+    kafka_consumergroup_id = config['kafka'].get('kafka-consumergroup-id')
     mongo_url = config['mongo'].get('url')
     mongo_username = config['mongo'].get('username')
     mongo_password = config['mongo'].get('password')
 
     # try:
-    processor = Processor(topic,   
+    processor = Processor(tweet_topic,   
                           bootstrap_servers=broker,
                           enable_auto_commit=True,
                           auto_offset_reset='latest',
-                          processed_tweet_topic=processed_tweet_topic,
+                          enriched_tweet_topic=enriched_tweet_topic,
                           word_topic=word_topic,
                           mongo_url=mongo_url,
                           mongo_username=mongo_username,
                           mongo_password=mongo_password,
-                          group_id="processing_consumergroup"
+                          group_id=kafka_consumergroup_id
                           )
     while True:
         try:

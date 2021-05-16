@@ -130,16 +130,18 @@ if __name__ == "__main__":
 
     # Read config paramaters
     broker          = config['kafka'].get('broker')
-    processed_tweet_topic = config['kafka'].get('processed_tweet_topic')
+    enriched_tweet_topic = config['kafka'].get('enriched_tweet_topic')
     neo4j_username   = config['neo4j'].get('username')
     neo4j_password   = config['neo4j'].get('password')
     neo4j_uri     = config['neo4j'].get('uri')
+    kafka_consumergroup_id = config['neo4j'].get('kafka-consumergroup-id')
+
  
-    processor = Processor(  processed_tweet_topic,   # Kafka topic
+    processor = Processor(  enriched_tweet_topic,   # Kafka topic
                             bootstrap_servers = broker,
                             enable_auto_commit = True,
                             auto_offset_reset = 'latest',
-                            group_id = "neo4j_consumergroup",
+                            group_id = kafka_consumergroup_id,
                             neo4j_uri = neo4j_uri,
                             neo4j_username = neo4j_username,
                             neo4j_password = neo4j_password

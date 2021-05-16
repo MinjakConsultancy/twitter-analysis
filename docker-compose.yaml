@@ -30,7 +30,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
+      #KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
       KAFKA_BROKER_ID: 1
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
     volumes:
@@ -51,14 +51,13 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
+      #KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
       KAFKA_BROKER_ID: 2
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
     volumes:
       - ../persistence/kafka2/data:/var/lib/kafka/data
     depends_on:
       - zoo1
-
 
   kafka3:
     image: confluentinc/cp-kafka:5.5.1
@@ -73,13 +72,39 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
+      #KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
       KAFKA_BROKER_ID: 3
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
     volumes:
       - ../persistence/kafka3/data:/var/lib/kafka/data
     depends_on:
       - zoo1
+
+  # This "container" is a workaround to pre-create topics
+  kafka-setup:
+    image: confluentinc/cp-kafka:5.1.1
+    hostname: kafka-setup
+    container_name: kafka-setup
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+      - zoo1
+#    volumes:
+#      - $PWD/connectors:/tmp/connectors
+#      - $PWD/dashboard:/tmp/dashboard
+    command: "bash -c 'echo Waiting for Kafka to be ready...  && \
+                       cub kafka-ready -b kafka1:19092 1 20 && \
+                       kafka-topics --create --if-not-exists --zookeeper zoo1:2181 --partitions 2 --replication-factor 2 --topic tweet-topic && \
+                       kafka-topics --create --if-not-exists --zookeeper zoo1:2181 --partitions 2 --replication-factor 2 --topic enriched-tweet-topic && \
+                       kafka-topics --create --if-not-exists --zookeeper zoo1:2181 --partitions 2 --replication-factor 2 --topic word-topic && \
+                       echo Everyting set... lets roll... '"
+    environment:
+      # The following settings are listed here only to satisfy the image's requirements.
+      # We override the image's `command` anyways, hence this container will not start a broker.
+      KAFKA_BROKER_ID: ignored
+      KAFKA_ZOOKEEPER_CONNECT: ignored
+
 
   kafka-topics-ui:
     image: landoop/kafka-topics-ui:0.9.4
@@ -217,9 +242,13 @@ services:
     environment:
       NEO4J_AUTH: none
 
+  build_python:
+    container_name: build_python
+    build: ./processing
+    image: minjak/twitter_processing
+
   twitter2kafka:
     container_name: twitter_proc_twitter2kafka
-    build: ./processing
     image: minjak/twitter_processing
     volumes:
       - ./config/.:/tmp/config
@@ -230,10 +259,9 @@ services:
         - kafka1
         - kafka2
         - kafka3
-    
+                      
   kafka2kafka:
     container_name: twitter_proc_kafka2kafka
-    #build: ./processing
     image: minjak/twitter_processing
     volumes:
       - ./config/.:/tmp/config
@@ -246,39 +274,67 @@ services:
         - kafka3
         - mongodb
 
-  kafka2elastic:
-    #build: ./processing
+  kafka2elastic_tweet:
     image: minjak/twitter_processing
-    container_name: twitter_proc_kafka2elastic
+    container_name: twitter_proc_kafka2elastic_tweet
     volumes:
       - ./config/.:/tmp/config
     environment: 
       CONFIG_DIR: /tmp/config
       PYTHON_COMMAND: proces_kafka_to_elasticsearch.py
+      INDEX: TWEET
     depends_on: 
         - kafka1
         - kafka2
         - kafka3
         - elastic
     
-  kafka2mongodb:
-    #build: ./processing
+  kafka2elastic_word:
     image: minjak/twitter_processing
-    container_name: twitter_proc_kafka2mongodb
+    container_name: twitter_proc_kafka2elastic_word
+    volumes:
+      - ./config/.:/tmp/config
+    environment: 
+      CONFIG_DIR: /tmp/config
+      PYTHON_COMMAND: proces_kafka_to_elasticsearch.py
+      INDEX: WORD
+    depends_on: 
+        - kafka1
+        - kafka2
+        - kafka3
+        - elastic
+    
+  kafka2mongodb_tweet:
+    image: minjak/twitter_processing
+    container_name: twitter_proc_kafka2mongodb_tweet
     volumes:
       - ./config/.:/tmp/config
     environment: 
       CONFIG_DIR: /tmp/config
       PYTHON_COMMAND: proces_kafka_to_mongodb.py
+      INDEX: TWEET
     depends_on: 
       - kafka1
       - kafka2
       - kafka3
       - mongodb
-
       
+  kafka2mongodb_word:
+    image: minjak/twitter_processing
+    container_name: twitter_proc_kafka2mongodb_word
+    volumes:
+      - ./config/.:/tmp/config
+    environment: 
+      CONFIG_DIR: /tmp/config
+      PYTHON_COMMAND: proces_kafka_to_mongodb.py
+      INDEX: WORD
+    depends_on: 
+      - kafka1
+      - kafka2
+      - kafka3
+      - mongodb
+                      
   recalc_sentiment_mongodb:
-    #build: ./processing
     image: minjak/twitter_processing
     container_name: twitter_proc_recalc_sentiment_mongo
     volumes:
@@ -290,7 +346,6 @@ services:
       - mongodb
       
   replay_tweets:
-    #build: ./processing
     image: minjak/twitter_processing
     container_name: twitter_proc_replay_tweets
     volumes:
@@ -307,7 +362,6 @@ services:
       
 
   kafka2neo4j:
-    #build: ./processing
     container_name: twitter_proc_kafka2neo4j
     image: minjak/twitter_processing
     volumes:
@@ -323,24 +377,24 @@ services:
 
   backend:
     build: ./backend
-    image: localhost:15001/minjak/twitter_backend  
+    image: minjak/twitter_backend  
     container_name: twitter_backend
-    # ports:
-    #   - 3001:3000
-    expose: # so not visible expect for docker containers
-      - 3001
+    ports:
+       - 3001:3000
+    # expose: # so not visible expect for docker containers
+    #   - 3001
     depends_on: 
       - mongodb
 
   frontend:
     build: ./frontend
-    image: localhost:15001/minjak/twitter_frontend  
+    image: minjak/twitter_frontend  
     container_name: twitter_frontend
     ports:
       - 4200:4200
       - 8083:8083
     expose: # so not visible expect for docker containers
-      - 4200
+    #  - 4200
       - 8083
     depends_on:
       - backend
@@ -350,4 +404,4 @@ services:
 networks:
   default:
     external:
-      name: twitter_project
+      name: twitter-analysis-network

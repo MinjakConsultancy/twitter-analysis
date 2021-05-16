@@ -58,18 +58,34 @@ if __name__ == "__main__":
 
     # Read config paramaters
     broker = config['kafka'].get('broker')
-    processed_tweet_topic = config['kafka'].get('processed_tweet_topic')
-    elastic_index = config['elastic'].get('index')
+    enriched_tweet_topic = config['kafka'].get('enriched_tweet_topic')
+    word_topic = config['kafka'].get('word_topic')
+    elastic_tweet_index = config['elastic'].get('tweet-index')
+    elastic_word_index = config['elastic'].get('word-index')
     elastic_url = config['elastic'].get('url')
+    kafka_consumergroup_id = config['elastic'].get('kafka-consumergroup-id')
     print(elastic_url)
-    processor = Processor(processed_tweet_topic,   # Kafka topic
+
+    if os.environ.get('INDEX')=='TWEET':        
+        processor = Processor(enriched_tweet_topic,   # Kafka topic
                           bootstrap_servers=broker,
                           enable_auto_commit=True,
                           auto_offset_reset='latest',
-                          group_id="elastic_consumergroup",
-                          elastic_index=elastic_index,
+                          group_id=kafka_consumergroup_id,
+                          elastic_index=elastic_tweet_index,
                           elastic_url=elastic_url
                           )
+    else:
+        processor = Processor(word_topic,   # Kafka topic
+                          bootstrap_servers=broker,
+                          enable_auto_commit=True,
+                          auto_offset_reset='latest',
+                          group_id=kafka_consumergroup_id,
+                          elastic_index=elastic_word_index,
+                          elastic_url=elastic_url
+                          )
+        
+    
     while True:
         try:
             processor.process()

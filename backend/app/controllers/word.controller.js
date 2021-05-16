@@ -12,8 +12,7 @@ exports.findAllNotSpecified = (req, res) => {
             'sentiment': {
               '$exists': false
             }
-          },
-
+          }
         ]
       },
       {
@@ -22,7 +21,7 @@ exports.findAllNotSpecified = (req, res) => {
             'pos': 'ADV'
           }, {
             'pos': 'NOUN'
-          },
+          }
         ]
       },
       ]

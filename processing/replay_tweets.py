@@ -17,9 +17,7 @@ class Processor():
     def __init__(self, *args, **kwargs):
 
         self._broker = kwargs['bootstrap_servers']
-        self._twitter_topic = kwargs.pop('topic', None)
-        self._processed_topic = kwargs.pop('processed_tweet_topic', None)
-        self._word_topic = kwargs.pop('word_topic', None)
+        self._tweet_topic = kwargs.pop('tweet_topic', None)
         self._kafka = KafkaClient(self._broker)
         self._producer = SimpleProducer(self._kafka)
         
@@ -43,7 +41,7 @@ class Processor():
             del tweet["spacy"]
             #print(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]+'Z')
             tweet["data"]["created_at"]=datetime.datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-6]+'000Z'
-            self._producer.send_messages(self._twitter_topic, json.dumps(tweet).encode('utf-8'))
+            self._producer.send_messages(self._tweet_topic, json.dumps(tweet).encode('utf-8'))
         return
 
 if __name__ == "__main__":
@@ -71,24 +69,22 @@ if __name__ == "__main__":
 
     # Read config paramaters
     broker = config['kafka'].get('broker')
-    topic = config['kafka'].get('topic')
-    processed_tweet_topic = config['kafka'].get('processed_tweet_topic')
+    tweet_topic = config['kafka'].get('tweet_topic')
+    enriched_tweet_topic = config['kafka'].get('enriched_tweet_topic')
     word_topic = config['kafka'].get('word_topic')
     mongo_url = config['mongo'].get('url')
     mongo_username = config['mongo'].get('username')
     mongo_password = config['mongo'].get('password')
 
     # try:
-    processor = Processor(topic=topic,   
+    processor = Processor(tweet_topic=tweet_topic,   
                           bootstrap_servers=broker,
                           enable_auto_commit=True,
                           auto_offset_reset='latest',
-                          processed_tweet_topic=processed_tweet_topic,
-                          word_topic=word_topic,
                           mongo_url=mongo_url,
                           mongo_username=mongo_username,
                           mongo_password=mongo_password,
-                          group_id="processing_consumergroup",
+                          #group_id="processing_consumergroup",
                           number_of_tweets=NUMBER_OF_TWEETS_REPLAYED,
                           )
     while True:
