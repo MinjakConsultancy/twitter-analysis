@@ -57,8 +57,9 @@ class Processor(KafkaConsumer):
                 doc = self._nlp(tweet_text)
                 message['spacy'] = doc.to_json()
                 sentiment = 0
-                for token in message['spacy']['tokens']:
-                    token['word'] = tweet_text[token['start']: token['end']]
+                for token_org in message['spacy']['tokens']:
+                    token = token_org.copy()
+                    token['word'] = tweet_text[token['start']: token['end']].lower()
                     token['example_tweet'] = tweet_text
                     token['date_last_used'] = message["data"]["created_at"]
                     wordQuery = {
