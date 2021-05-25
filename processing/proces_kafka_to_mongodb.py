@@ -55,7 +55,7 @@ class Processor(KafkaConsumer):
                     self._mongodb_url, username=self._mongodb_username, password=self._mongodb_password)
                 wordCollection = client.tweet.word
                 wordQuery = {
-                    'word': {'$eq': message['word'].lower()},
+                    'word': {'$eq': message['word']},
                     'pos': {'$eq': message['pos']}
                 }
                 logging.debug(message)
