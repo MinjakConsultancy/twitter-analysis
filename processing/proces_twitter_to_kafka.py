@@ -4,11 +4,14 @@ import configparser
 import requests
 import json
 import yaml
+import time
 from json import dumps
-from kafka import KafkaProducer
+#from kafka import KafkaProducer
+from kafka import SimpleProducer, KafkaClient
 from time import sleep
-from requests.exceptions import ChunkedEncodingError
-
+from requests.exceptions import ChunkedEncodingError as request_chunkedencodingerror
+from urllib3.exceptions import ProtocolError as urllib3_protocolerror
+from urllib3.exceptions import HTTPError as urllib3_httperror
 def get_rule(name, keywords):
     keyword_concat = ' OR '.join(keywords)
     keyword_concat = str(keyword_concat).strip(' OR ')
@@ -53,10 +56,14 @@ class BearerTokenAuth(requests.auth.AuthBase):
         return self.token
 
 
-class Streamer(KafkaProducer):
+class Streamer():
     def __init__(self, topic, *args, **kwargs):
         self.topic = topic
-        super().__init__(*args, **kwargs)
+        self._broker = kwargs['broker']
+        self._kafka = KafkaClient(self._broker)
+        self._producer = SimpleProducer(self._kafka)
+
+        #super().__init__(*args, **kwargs)
 
     def produce(self, stream_url, params, bearer_token):
         logging.info("produce start")
@@ -120,28 +127,46 @@ class Streamer(KafkaProducer):
         )
         try:
             print(response.status_code)
+            if response.status_code == 429:
+                logging.info("~~~ Restarting stream search in 15*60 seconds... ~~~")
+                for x in range(2,15,1):
+                    logging.info("Starting in %s minutes" % str(15-x))
+                    time.sleep(60)
+                return True
+                
             if response.status_code != 200:
                 raise Exception(
                     "Cannot get stream (HTTP {}): {}".format(
                         response.status_code, response.text
                     )
                 )
+            try:
+                for response_line in response.iter_lines():
+                    if response_line:
+                        json_response = json.loads(response_line)
+                        #print(json.dumps(json_response, indent=4, sort_keys=True))
+                        #push tweet to kafka
+                        self._producer.send_messages(
+                            self.topic, 
+                            json.dumps(json_response).encode('utf-8'))
+                        #self.send(
+                        #    self.topic,
+                        #    json_response
+                        #)
 
-            for response_line in response.iter_lines():
-                if response_line:
-                    json_response = json.loads(response_line)
-                    #print(json.dumps(json_response, indent=4, sort_keys=True))
-                    #push tweet to kafka
-                    self.send(
-                        self.topic,
-                        json_response
-                    )
-
-                    logging.info("Queued tweet '{}'.".format(json_response['data']['id']))
-                    # logging.info(self.metrics())
-        except ChunkedEncodingError as e:
-            response.close()   
-            self.stream()         
+                        logging.info("Queued tweet '{}'.".format(json_response['data']['id']))
+                        # logging.info(self.metrics())
+            except urllib3_protocolerror as e:
+                logging.info("urllib3 protocol error: %s" % str(e))
+                logging.info("~~~ Restarting stream search in 15 seconds... ~~~")
+                time.sleep(15)
+                return True
+            except request_chunkedencodingerror as e:
+                logging.info("request chunked encoding error: %s" % str(e))
+                logging.info("~~~ Restarting stream search in 15 seconds... ~~~")
+                time.sleep(15)
+                return True
+            
         except (KeyboardInterrupt, SystemExit):
             response.close()
             raise
@@ -201,12 +226,13 @@ if __name__ == "__main__":
 
         streamer = Streamer( bootstrap_servers = broker,
                              value_serializer = lambda x: dumps(x).encode('utf-8'),
-                             topic = topic
+                             topic = topic,
+                             broker = broker
                            )    
 
         streamer.prepareStream(bearer_token, rules)
-        streamer.stream()
-           
+        while streamer.stream():
+           logging.warning("restart twitter to kafka needed")
         logging.info("Twitter API credentials parsed.")
     except KeyError as e:
         logging.error("Secret file not found. Make sure it is available in the directory.")
