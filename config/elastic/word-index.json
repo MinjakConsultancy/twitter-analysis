@@ -1,0 +1,84 @@
+{
+    "aliases" : { },
+    "mappings" : {
+      "properties" : {
+        "date_last_used" : {
+          "type" : "date"
+        },
+        "dep" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "end" : {
+          "type" : "long"
+        },
+        "example_tweet" : {
+          "type" : "text",
+          "store": true,
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "head" : {
+          "type" : "long"
+        },
+        "id" : {
+          "type" : "long"
+        },
+        "pos" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "sentiment" : {
+          "type" : "long"
+        },
+        "start" : {
+          "type" : "long"
+        },
+        "tag" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "word" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        }
+      }
+    },
+    "settings" : {
+      "index" : {
+        "routing" : {
+          "allocation" : {
+            "include" : {
+              "_tier_preference" : "data_content"
+            }
+          }
+        },
+        "number_of_shards" : "1",
+        "number_of_replicas" : "1"
+      }
+    }
+}

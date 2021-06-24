@@ -1,0 +1,36 @@
+{
+    "config": {
+      "index_pattern": "word*",
+      "rollup_index": "rollup-word-index",
+      "cron": "0 * * * * ?",
+      "groups": {
+        "date_histogram": {
+          "fixed_interval": "2m",
+          "field": "date_last_used",
+          "delay": "30s",
+          "time_zone": "UTC"
+        },
+        "terms": {
+          "fields": [
+            "pos.keyword",
+            "word.keyword"
+          ]
+        }
+      },
+      "metrics": [
+        {
+          "field": "sentiment",
+          "metrics": [
+            "avg",
+            "max",
+            "min",
+            "sum",
+            "value_count"
+          ]
+        }
+      ],
+      "timeout": "20s",
+      "page_size": 10000
+    },
+     "upgraded_doc_id": true
+  }

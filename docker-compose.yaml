@@ -23,14 +23,14 @@ services:
     container_name: twitter_infra_kafka1
     ports:
       - "9092:9092"
-    #expose:
-    #  - "9092"
+    expose:
+      - "9092"
     environment:
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka1:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
-      #KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
       KAFKA_BROKER_ID: 1
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
     volumes:
@@ -44,14 +44,14 @@ services:
     hostname: kafka2
     ports:
       - "9093:9093"
-    #expose:
-    #  - "9093"
+    expose:
+      - "9093"
     environment:
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka2:19093,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
-      #KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
       KAFKA_BROKER_ID: 2
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
     volumes:
@@ -65,14 +65,14 @@ services:
     hostname: kafka3
     ports:
       - "9094:9094"
-    #expose:
-    #  - "9094"
+    expose:
+      - "9094"
     environment:
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka3:19094,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
-      #KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
       KAFKA_BROKER_ID: 3
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
     volumes:
@@ -94,11 +94,14 @@ services:
 #      - $PWD/connectors:/tmp/connectors
 #      - $PWD/dashboard:/tmp/dashboard
     command: "bash -c 'echo Waiting for Kafka to be ready...  && \
-                       cub kafka-ready -b kafka1:19092 1 20 && \
-                       kafka-topics --create --if-not-exists --zookeeper zoo1:2181 --partitions 2 --replication-factor 2 --topic tweet-topic && \
-                       kafka-topics --create --if-not-exists --zookeeper zoo1:2181 --partitions 2 --replication-factor 2 --topic enriched-tweet-topic && \
-                       kafka-topics --create --if-not-exists --zookeeper zoo1:2181 --partitions 2 --replication-factor 2 --topic word-topic && \
-                       echo Everyting set... lets roll... '"
+              cub kafka-ready -b kafka1:19092 1 20 && \
+              cub kafka-ready -b kafka1:19092 1 20 && \
+              cub kafka-ready -b kafka1:19092 1 20 && \
+              kafka-topics --create --if-not-exists --zookeeper zoo1:2181 --partitions 1 --replication-factor 2 --topic tweet-topic && \
+              kafka-topics --create --if-not-exists --zookeeper zoo1:2181 --partitions 1 --replication-factor 2 --topic enriched-tweet-topic && \
+              kafka-topics --create --if-not-exists --zookeeper zoo1:2181 --partitions 1 --replication-factor 2 --topic word-topic && \
+              kafka-topics --list --zookeeper zoo1:2181 && \
+              echo Everyting set... lets roll... '"
     environment:
       # The following settings are listed here only to satisfy the image's requirements.
       # We override the image's `command` anyways, hence this container will not start a broker.
@@ -106,59 +109,59 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: ignored
 
 
-#  kafka-topics-ui:
-#    image: landoop/kafka-topics-ui:0.9.4
-#    hostname: kafka-topics-ui
-#    container_name: twitter_infra_topics_ui
-#    ports:
-#      - "8005:8000"
-#    expose: 
-#      - "8005"
-#    environment:
-#      KAFKA_REST_PROXY_URL: "http://kafka-rest-proxy:8082/"
-#      PROXY: "true"
-#    depends_on:
-#      - zoo1
-#      - kafka1
-#      - kafka2
-#      - kafka3
-#      - kafka-schema-registry
-#      - kafka-rest-proxy
-#
-#  kafka-schema-registry:
-#    image: confluentinc/cp-schema-registry:5.5.1
-#    hostname: kafka-schema-registry
-#    container_name: twitter_infra_kafka_schemaregistry
-#    ports:
-#      - "8081:8081"
-#    expose:
-#      - "8081"
-#    environment:
-#      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:19092
-#      SCHEMA_REGISTRY_HOST_NAME: kafka-schema-registry
-#      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
-#    depends_on:
-#      - zoo1
-#      - kafka1
-#
-#  kafka-rest-proxy:
-#    image: confluentinc/cp-kafka-rest:5.5.1
-#    hostname: kafka-rest-proxy
-#    container_name: twitter_infra_kafka_rest
-#    ports:
-#      - "8082:8082"
-#    expose: 
-#      - "8082"
-#    environment:
-#      #KAFKA_REST_ZOOKEEPER_CONNECT: zoo1:2181
-#      KAFKA_REST_LISTENERS: http://0.0.0.0:8082/
-#      KAFKA_REST_SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081/
-#      KAFKA_REST_HOST_NAME: kafka-rest-proxy
-#      KAFKA_REST_BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:19092
-#    depends_on:
-#      - zoo1
-#      - kafka1
-#      - kafka-schema-registry
+  kafka-topics-ui:
+    image: landoop/kafka-topics-ui:0.9.4
+    hostname: kafka-topics-ui
+    container_name: twitter_infra_topics_ui
+    ports:
+      - "8005:8000"
+    expose: 
+      - "8005"
+    environment:
+      KAFKA_REST_PROXY_URL: "http://kafka-rest-proxy:8082/"
+      PROXY: "true"
+    depends_on:
+      - zoo1
+      - kafka1
+      - kafka2
+      - kafka3
+      - kafka-schema-registry
+      - kafka-rest-proxy
+
+  kafka-schema-registry:
+    image: confluentinc/cp-schema-registry:5.5.1
+    hostname: kafka-schema-registry
+    container_name: twitter_infra_kafka_schemaregistry
+    ports:
+      - "8081:8081"
+    expose:
+      - "8081"
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:19092
+      SCHEMA_REGISTRY_HOST_NAME: kafka-schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    depends_on:
+      - zoo1
+      - kafka1
+
+  kafka-rest-proxy:
+    image: confluentinc/cp-kafka-rest:5.5.1
+    hostname: kafka-rest-proxy
+    container_name: twitter_infra_kafka_rest
+    ports:
+      - "8082:8082"
+    expose: 
+      - "8082"
+    environment:
+      #KAFKA_REST_ZOOKEEPER_CONNECT: zoo1:2181
+      KAFKA_REST_LISTENERS: http://0.0.0.0:8082/
+      KAFKA_REST_SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081/
+      KAFKA_REST_HOST_NAME: kafka-rest-proxy
+      KAFKA_REST_BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:19092
+    depends_on:
+      - zoo1
+      - kafka1
+      - kafka-schema-registry
 
   mongodb:
     container_name: twitter_infra_mongodb
@@ -353,7 +356,7 @@ services:
     environment: 
       CONFIG_DIR: /tmp/config
       PYTHON_COMMAND: replay_tweets.py
-      NUMBER_OF_TWEETS_REPLAYED: 30
+      NUMBER_OF_TWEETS_REPLAYED: 10
     depends_on: 
       - mongodb
       - kafka1
@@ -406,5 +409,4 @@ services:
         
 networks:
   default:
-    external:
       name: twitter-analysis-network

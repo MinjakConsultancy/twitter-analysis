@@ -1,0 +1,252 @@
+{
+      "aliases" : { },
+      "mappings" : {
+        "dynamic": "false",
+        "properties" : {
+          "data" : {
+            "properties" : {
+              "attachments" : {
+                "properties" : {
+                  "media_keys" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  }
+                }
+              },
+              "author_id" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "created_at" : {
+                "type" : "date"
+              },
+              "entities" : {
+                "properties" : {
+                  "hashtags" : {
+                    "properties" : {
+                      "tag" : {
+                        "type" : "text",
+                        "fields" : {
+                          "keyword" : {
+                            "type" : "keyword",
+                            "ignore_above" : 256
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "mentions" : {
+                    "properties" : {
+                      "username" : {
+                        "type" : "text",
+                        "fields" : {
+                          "keyword" : {
+                            "type" : "keyword",
+                            "ignore_above" : 256
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "urls" : {
+                    "properties" : {
+                      "description" : {
+                        "type" : "text",
+                        "fields" : {
+                          "keyword" : {
+                            "type" : "keyword",
+                            "ignore_above" : 256
+                          }
+                        }
+                      },
+                      "display_url" : {
+                        "type" : "text",
+                        "fields" : {
+                          "keyword" : {
+                            "type" : "keyword",
+                            "ignore_above" : 256
+                          }
+                        }
+                      },
+                      "expanded_url" : {
+                        "type" : "text",
+                        "fields" : {
+                          "keyword" : {
+                            "type" : "keyword",
+                            "ignore_above" : 256
+                          }
+                        }
+                      },
+                      "images" : {
+                        "properties" : {
+                          "height" : {
+                            "type" : "long"
+                          },
+                          "url" : {
+                            "type" : "text",
+                            "fields" : {
+                              "keyword" : {
+                                "type" : "keyword",
+                                "ignore_above" : 256
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "status" : {
+                        "type" : "long"
+                      },
+                      "title" : {
+                        "type" : "text",
+                        "fields" : {
+                          "keyword" : {
+                            "type" : "keyword",
+                            "ignore_above" : 256
+                          }
+                        }
+                      },
+                      "unwound_url" : {
+                        "type" : "text",
+                        "fields" : {
+                          "keyword" : {
+                            "type" : "keyword",
+                            "ignore_above" : 256
+                          }
+                        }
+                      },
+                      "url" : {
+                        "type" : "text",
+                        "fields" : {
+                          "keyword" : {
+                            "type" : "keyword",
+                            "ignore_above" : 256
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "in_reply_to_user_id" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "lang" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "possibly_sensitive" : {
+                "type" : "boolean"
+              },
+              "public_metrics" : {
+                "properties" : {
+                  "like_count" : {
+                    "type" : "long"
+                  },
+                  "quote_count" : {
+                    "type" : "long"
+                  },
+                  "reply_count" : {
+                    "type" : "long"
+                  },
+                  "retweet_count" : {
+                    "type" : "long"
+                  }
+                }
+              },
+              "referenced_tweets" : {
+                "properties" : {
+                  "id" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  },
+                  "type" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  }
+                }
+              },
+              "source" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "text" : {
+                "type" : "text",
+                "store": true,
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              }
+            }
+          },
+          "matching_rules" : {
+            "properties" : {
+              "tag" : {
+                "type" : "text",
+                "store": true,
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              }
+            }
+          },
+          "sentiment" : {
+            "type" : "long"
+          }
+        }
+      },
+      "settings" : {
+        "index" : {
+          "routing" : {
+            "allocation" : {
+              "include" : {
+                "_tier_preference" : "data_content"
+              }
+            }
+          },
+          "number_of_shards" : "1",
+          "number_of_replicas" : "1"
+        }
+      }
+  }

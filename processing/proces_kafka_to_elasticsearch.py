@@ -21,11 +21,21 @@ class Processor(KafkaConsumer):
 
     def process(self):
         try:
+            
             message = self.__next__()
             message = json.loads(message.value)
+            #if self._elastic_index == elastic_tweet_index:
+            #    del message['spacy']
+            #    if message['entities']['urls']:
+            #        del message['entities']['urls']['status']
+            #        del message['entities']['urls']['end']
+            #        del message['entities']['urls']['start']
+            #    if message['entities']['urls']['images']:    
+            #        del message['entities']['urls']['images']['width']
+            #        del message['entities']['urls']['images']['height']
             self._teller = self._teller + 1
             if self._teller % 100 == 0:
-                logging.warn(self._teller)
+                logging.debug(self._teller)
             res = self._es.index(index=self._elastic_index, body=message)
             logging.debug('created elastic document')
             return
@@ -64,11 +74,15 @@ if __name__ == "__main__":
     elastic_word_index = config['elastic'].get('word-index')
     elastic_url = config['elastic'].get('url')
     kafka_consumergroup_id = config['elastic'].get('kafka-consumergroup-id')
-    print(elastic_url)
+    logging.info(elastic_url)
+    logging.info('index ' + os.environ.get('INDEX'))
 
     if os.environ.get('INDEX')=='TWEET':        
+        logging.info('tweet index')
         processor = Processor(enriched_tweet_topic,   # Kafka topic
                           bootstrap_servers=broker,
+                          session_timeout_ms=30000, #default 10000
+                          heartbeat_interval_ms=10000, #default 3000
                           enable_auto_commit=True,
                           auto_offset_reset='latest',
                           group_id=kafka_consumergroup_id,
@@ -78,6 +92,8 @@ if __name__ == "__main__":
     else:
         processor = Processor(word_topic,   # Kafka topic
                           bootstrap_servers=broker,
+                          session_timeout_ms=30000, #default 10000
+                          heartbeat_interval_ms=10000, #default 3000
                           enable_auto_commit=True,
                           auto_offset_reset='latest',
                           group_id=kafka_consumergroup_id,

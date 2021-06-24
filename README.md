@@ -39,9 +39,9 @@ Next we can create the topics in kafka, build the custom docker immages.
 ```linux
 
 docker network create twitter-analysis-network
+docker-compose build
 docker-compose up -d kafka1 kafka2 kafka3 mongodb kibana neo4j
 docker-compose up kafka-setup
-docker-compose build
 
 ```
 
@@ -98,10 +98,31 @@ docker cp  twitter_infra_mongodb:/tweets.json ./documentation/.
 
 ```
 
+To get started with a minimal dashboard of elastic search
+
+```linux
+
+docker cp ./config/elastic/elastic-startup.sh twitter_infra_kibana:/usr/share/kibana/
+docker cp ./config/elastic/word-index.json twitter_infra_kibana:/usr/share/kibana/
+docker cp ./config/elastic/tweet-index.json twitter_infra_kibana:/usr/share/kibana/
+docker cp ./config/elastic/export_kibana.ndjson twitter_infra_kibana:/usr/share/kibana/
+docker cp ./config/elastic/word-rollup-job.json twitter_infra_kibana:/usr/share/kibana/
+
+docker exec -it twitter_infra_kibana /bin/sh elastic-startup.sh
+
+```
+
+
+
 It is also possible to "replay" twitter by running the replay_tweets container. This will replay a number of tweets (200) with the current date.
 
 ```linux
 
 docker-compose up replay_tweets
+
+
+docker run --rm --network twitter-analysis-network -it --entrypoint /bin/bash confluentinc/cp-kafka:5.1.1
+
+kafka-console-consumer --from-beginning --bootstrap-server zoo1:2181 --topic tweet-topic 
 
 ```
